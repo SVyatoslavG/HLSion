@@ -66,7 +66,7 @@ public class HLSion {
     internal var progressClosure: ProgressParameter?
     internal var finishClosure: FinishParameter?
     internal var errorClosure: ErrorParameter?
-//    internal var resolvedMediaSelection: AVMediaSelection?
+    internal var resolvedMediaSelection: AVMediaSelection?
     
     // MARK: Intialization
     
@@ -155,43 +155,42 @@ public class HLSion {
     /// Additional downloadable media selection group and option. Return empty array if not yet download to local or completly downloaded all medias.
     ///
     /// - Returns: media group and options.
-//    public func downloadableAdditionalMedias() -> [(AVMediaSelectionGroup, AVMediaSelectionOption)] {
-//        var result = [(AVMediaSelectionGroup, AVMediaSelectionOption)]()
-//        guard let assetCache = urlAsset.assetCache else { return result }
-//        
-//        let mediaCharacteristics = [AVMediaCharacteristicAudible, AVMediaCharacteristicLegible]
-//        
-//        for mediaCharacteristic in mediaCharacteristics {
-//            guard let mediaSelectionGroup = urlAsset.mediaSelectionGroup(forMediaCharacteristic: mediaCharacteristic) else { continue }
-//            let savedOptions = assetCache.mediaSelectionOptions(in: mediaSelectionGroup)
-//            for option in mediaSelectionGroup.options where !savedOptions.contains(option) {
-//                result.append((mediaSelectionGroup, option))
-//            }
-//        }
-//        
-//        return result
-//    }
+   public func downloadableAdditionalMedias() -> [(AVMediaSelectionGroup, AVMediaSelectionOption)] {
+       var result = [(AVMediaSelectionGroup, AVMediaSelectionOption)]()
+       guard let assetCache = urlAsset.assetCache else { return result }
+       
+       let mediaCharacteristics = [AVMediaCharacteristicAudible, AVMediaCharacteristicLegible]
+       
+       for mediaCharacteristic in mediaCharacteristics {
+           guard let mediaSelectionGroup = urlAsset.mediaSelectionGroup(forMediaCharacteristic: mediaCharacteristic) else { continue }
+           let savedOptions = assetCache.mediaSelectionOptions(in: mediaSelectionGroup)
+           for option in mediaSelectionGroup.options where !savedOptions.contains(option) {
+               result.append((mediaSelectionGroup, option))
+           }
+       }
+       
+       return result
+   }
     
     /// Download additional media.
     ///
     /// - Parameter media: Selected pair from `downloadableAdditionalMedias`
     /// - Returns: Chainable self instance. WARN: progress and finish closures are shared.
-//    @discardableResult
-//    public func downloadAdditional(media: (AVMediaSelectionGroup, AVMediaSelectionOption)) -> Self {
-//        guard state == .downloaded else { return self }
-//        completed = false
-//        let dummy = HLSion(url: urlAsset.url, name: "jp.HLSion.dummy")
-//        dummy.download(progress: { (percent) in
-//            print(percent)
-//        }).finish { [weak dummy] _ in
-//            guard let dummyMediaSelection = dummy?.resolvedMediaSelection else { return }
-//            let mediaSelection = dummyMediaSelection.mutableCopy() as! AVMutableMediaSelection
-//            mediaSelection.select(media.1, in: media.0)
-//            
-//            SessionManager.shared.downloadAdditional(media: mediaSelection, hlsion: self)
-//        }
-//        return self
-//    }
+   @discardableResult
+   public func downloadAdditional(media: (AVMediaSelectionGroup, AVMediaSelectionOption)) -> Self {
+       guard state == .downloaded else { return self }
+       let dummy = HLSion(url: urlAsset.url, name: "jp.HLSion.dummy")
+       dummy.download(progress: { (percent) in
+           print(percent)
+       }).finish { [weak dummy] _ in
+           guard let dummyMediaSelection = dummy?.resolvedMediaSelection else { return }
+           let mediaSelection = dummyMediaSelection.mutableCopy() as! AVMutableMediaSelection
+           mediaSelection.select(media.1, in: media.0)
+           
+           SessionManager.shared.downloadAdditional(media: mediaSelection, hlsion: self)
+       }
+       return self
+   }
 }
 
 extension HLSion: Equatable {}
