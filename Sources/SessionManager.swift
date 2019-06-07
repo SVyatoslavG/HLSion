@@ -24,8 +24,8 @@ final internal class SessionManager: NSObject, AVAssetDownloadDelegate {
         super.init()
         let configuration = URLSessionConfiguration.background(withIdentifier: "jp.HLSion.configuration")
         session = AVAssetDownloadURLSession(configuration: configuration,
-                                                            assetDownloadDelegate: self,
-                                                            delegateQueue: OperationQueue.main)
+                                            assetDownloadDelegate: self,
+                                            delegateQueue: OperationQueue.main)
         restoreDownloadsMap()
     }
     
@@ -53,17 +53,17 @@ final internal class SessionManager: NSObject, AVAssetDownloadDelegate {
         task.resume()
     }
     
-//    func downloadAdditional(media: AVMutableMediaSelection, hlsion: HLSion) {
-//        guard assetExists(forName: hlsion.name) == true else { return }
-//        
-//        let options = [AVAssetDownloadTaskMediaSelectionKey: media]
-//        guard let task = session.makeAssetDownloadTask(asset: hlsion.urlAsset, assetTitle: hlsion.name, assetArtworkData: nil, options: options) else { return }
-//        
-//        task.taskDescription = hlsion.name
-//        downloadingMap[task] = hlsion
-//        
-//        task.resume()
-//    }
+       func downloadAdditional(media: AVMutableMediaSelection, hlsion: HLSion) {
+           guard assetExists(forName: hlsion.name) == true else { return }
+    
+           let options = [AVAssetDownloadTaskMediaSelectionKey: media]
+           guard let task = session.makeAssetDownloadTask(asset: hlsion.urlAsset, assetTitle: hlsion.name, assetArtworkData: nil, options: options) else { return }
+    
+           task.taskDescription = hlsion.name
+           downloadingMap[task] = hlsion
+    
+           task.resume()
+       }
     
     func cancelDownload(_ hlsion: HLSion) {
         downloadingMap.first(where: { $1 == hlsion })?.key.cancel()
@@ -100,6 +100,8 @@ final internal class SessionManager: NSObject, AVAssetDownloadDelegate {
                     print("An error occured trying to delete the contents on disk for \(hlsion.name): \(error)")
                 }
                 
+                hlsion.result = .success
+                
             case (NSURLErrorDomain, NSURLErrorUnknown):
                 hlsion.result = .failure(error)
                 fatalError("Downloading HLS streams is not supported in the simulator.")
@@ -111,6 +113,7 @@ final internal class SessionManager: NSObject, AVAssetDownloadDelegate {
         } else {
             hlsion.result = .success
         }
+
         switch hlsion.result! {
         case .success:
             hlsion.finishClosure?(AssetStore.path(forName: hlsion.name)!)
@@ -142,11 +145,11 @@ final internal class SessionManager: NSObject, AVAssetDownloadDelegate {
         progressClosure(percentComplete)
     }
     
-//    func urlSession(_ session: URLSession, assetDownloadTask: AVAssetDownloadTask, didResolve resolvedMediaSelection: AVMediaSelection) {
-//        if assetDownloadTask.taskDescription == "jp.HLSion.dummy" {
-//            guard let hlsion = downloadingMap[assetDownloadTask] else { return }
-//            hlsion.resolvedMediaSelection = resolvedMediaSelection
-//            assetDownloadTask.cancel()
-//        }
-//    }
+       func urlSession(_ session: URLSession, assetDownloadTask: AVAssetDownloadTask, didResolve resolvedMediaSelection: AVMediaSelection) {
+           if assetDownloadTask.taskDescription == "jp.HLSion.dummy" {
+               guard let hlsion = downloadingMap[assetDownloadTask] else { return }
+               hlsion.resolvedMediaSelection = resolvedMediaSelection
+               assetDownloadTask.cancel()
+           }
+       }
 }
